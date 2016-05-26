@@ -115,11 +115,11 @@ def data_value_submission(datestamp, serial_number, data_value, remote_addr, is_
         return json.dumps(res)
     res['datestamp']  = TimeStamp.__unicode__()
 
+    max_value   = float(DeviceInstance.max_range)
+    min_value   = float(DeviceInstance.min_range)
+    update_rate = float(DeviceInstance.update_rate)
+
     if is_obj == False:
-        
-        max_value   = float(DeviceInstance.max_range)
-        min_value   = float(DeviceInstance.min_range)
-        update_rate = float(DeviceInstance.update_rate)
 
         if data_value_float > max_value or data_value_float < min_value:
             msg = "Value submitted is out of range [{0} {1}]".format(min_value, max_value)
@@ -179,6 +179,7 @@ def data_value_submission(datestamp, serial_number, data_value, remote_addr, is_
         logger.debug("Decoded submitted_obj")
         ExistingDataValue = models.DataObject.objects.filter(device_instance=DeviceInstance).order_by('-data_timestamp')
         logger.debug("Found %d existing ExistingDataValue objects" % (ExistingDataValue.count()))
+        
         if ExistingDataValue.count() > 0:
             delta_time = TimeStamp.measurement_timestamp - ExistingDataValue[0].data_timestamp.measurement_timestamp
             delta_time_sec = float(delta_time.seconds)

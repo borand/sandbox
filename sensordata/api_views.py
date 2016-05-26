@@ -21,11 +21,17 @@ logger = logging.getLogger(__name__)
 # API
 #
 
-def api_submit_datavalue(request, datestamp, sn, val):
-    msg = "[SUBMITTED] datestamp: %s, sn: %s, val: %s" % (datestamp, sn, val)
+def api_submit_datavalue(request, datestamp, sn, val, mode):
+    msg = "[SUBMITTED] datestamp: %s, sn: %s, val: %s, mode=%s" % (datestamp, sn, val, mode)
+    print(msg)
     logger.info(msg)
+
     try:
-        results = data_value_submission(datestamp, sn, val, request.META.get('REMOTE_ADDR'))
+    	if "obj" in mode:
+        	is_obj = True
+    	else:
+        	is_obj = False
+        results = data_value_submission(datestamp, sn, val, request.META.get('REMOTE_ADDR'),is_obj)
     except Exception as E:                
         results = 'Exception:' + E.message
     return HttpResponse(results)
