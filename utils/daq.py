@@ -31,6 +31,7 @@ from redislog import handlers, logger
 from data import models
 from data import api_views
 from data import data_utils
+from utils import hwcal
 
 ##########################################################################################
 # Define special processing functions for various sensor data
@@ -145,11 +146,20 @@ class SubmitData(object):
 
             for data in device_data:
                 sn                  = data[0]
-                processing_function = ProcessingFunctions.get(sn,process_default)
-                val                 = processing_function(data)                
+                device_instance     = models.DeviceInstance.objects.filter(serial_number__exact=sn)
+                if device_instance.count() == 1:
+                    reload(hwcal)
+                    callibartion = device_instance[0].callibartion
+                    self.state['callibartion']   = callibartion
+                    processing_function = vars(hwcal,callibartion)
+                    val                 = processing_function(data)
+                else:
+                    val = data[1]
+                
                 self.state['submit_sn_val']  = [timestamp, sn, val]
                 submit_results = data_utils.data_value_submission(datestamp=timestamp, serial_number=sn, data_value=val, remote_addr="127.0.0.1", is_obj=False)
                 self.state['submit_results']  = submit_results
+                self.state['msg_count'] += 1
 
         except Exception as E:
             self.log.error("process_message(): " + E.message)
