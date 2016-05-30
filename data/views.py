@@ -44,8 +44,11 @@ def api_submit_datavalue(request, datestamp, sn, val, mode):
             is_obj = False
 
         results = data_value_submission(datestamp, sn, val, request.META.get('REMOTE_ADDR'), is_obj)
+        logger.info(results)
     except Exception as E:                
         results = ' Exception: ' + E.message
+        logger.error(results)
+
     return HttpResponse(results)
 
 def api_get_data(request, **kwargs):

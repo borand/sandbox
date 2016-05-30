@@ -25,7 +25,7 @@ def print_device_instance():
 def submit_test():	
 	out = data_utils.data_value_submission(datestamp="now", serial_number="0", data_value=0.5, remote_addr="127.0.0.1", is_obj=False)
 	print(out)
-
+	
 if __name__ == '__main__':
 	print_device_instance()
 	submit_test()
