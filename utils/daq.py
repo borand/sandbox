@@ -147,11 +147,12 @@ class SubmitData(object):
             for data in device_data:
                 sn                  = data[0]
                 device_instance     = models.DeviceInstance.objects.filter(serial_number__exact=sn)
+                print(device_instance)
                 if device_instance.count() == 1:
                     reload(hwcal)
-                    callibartion = device_instance[0].callibartion
-                    self.state['callibartion']   = callibartion
-                    processing_function = vars(hwcal,callibartion)
+                    callibration = device_instance[0].callibration
+                    self.state['callibration']   = callibration
+                    processing_function = vars(hwcal)[callibration]
                     val                 = processing_function(data)
                 else:
                     val = data[1]
