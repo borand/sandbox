@@ -25,14 +25,11 @@ def ping(request):
     return HttpResponse(msg)
 
 class HomePageView(TemplateView):
-
     template_name = "home.html"
-
     def get_context_data( **kwargs):
 
         msg = "Sensordata app loaded @ %s" % (datetime.datetime.now())
-        context = super(HomePageView, self).get_context_data(**kwargs)
-        # context['device_instance'] = models.DeviceInstance.objects..filter(private=False).order_by('device')
+        context = super(HomePageView, self).get_context_data(**kwargs)        
         context['msg'] = msg
         logger.info(msg)
         return context

@@ -1,8 +1,8 @@
 from django.test import TestCase
-from sensordata import models
+from data import models
 
 import datetime
-import simplejson
+import json
 
 class SimpleTest(TestCase):
     fixtures = ['basic_fixture.json']

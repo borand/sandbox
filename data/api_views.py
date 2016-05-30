@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 # API
 #
 
-def api_submit_datavalue(request, datestamp, sn, val, mode):
+def api_submit_datavalue(request, sn, val, mode, datestamp="now"):
     msg = "[SUBMITTED] datestamp: %s, sn: %s, val: %s, mode=%s" % (datestamp, sn, val, mode)
     print(msg)
     logger.info(msg)
