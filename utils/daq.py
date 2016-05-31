@@ -136,9 +136,10 @@ class SubmitData(object):
                 device_data = [sjson.loads(item['data'])]
                 timestamp   = "now"
                 #timestamp   = datetime.datetime.strptime(timestamp.split('.')[0], "%Y-%m-%d-%H:%M:%S")
-            if item['data'] == 'MSG':
+            if item['channel'] == 'MSG':
                 msg         = sjson.loads(item['data'])
-                device_data = msg['MSG']['data']
+                tmp         = sjson.loads(msg['MSG']['data'])
+                device_data = tmp['data']
                 timestamp   = msg['MSG']['timestamp']
 
             self.state['device_data'] = device_data
