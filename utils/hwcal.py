@@ -6,7 +6,7 @@ def process_default(data):
 # Define special processing functions for various sensor data
 def process_hydro_power_data(data):    
     power = round(3600.0/((pow(2,16)*float(data[1]) + float(data[2]))/16.0e6*1024.0))    
-    print("process_hydro_power_data({} = power = {})".format(data,power))
+    #print("process_hydro_power_data({} = power = {})".format(data,power))
     if power < 120.0*100.0: # 120V @ 100A 
         return power
     else:
