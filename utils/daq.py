@@ -33,35 +33,9 @@ from data import api_views
 from data import data_utils
 from utils import hwcal
 
-##########################################################################################
-# Define special processing functions for various sensor data
-def process_hydro_power_data(data):    
-    power = round(3600.0/((pow(2,16)*float(data[1]) + float(data[2]))/16.0e6*1024.0))    
-    print("process_hydro_power_data({} = power = {})".format(data,power))
-    if power < 120.0*100.0: # 120V @ 100A 
-        return power
-    else:
-        return -1
-
-def process_hydro_wh_data(data):
-    print("process_hydro_wh_data({})".format(data))
-    return data[2]
-
-def process_default(data):
-    print("process_default({})".format(data))
-    return data[1]
-
-def process_1wire_thermometer(data):
-    print("process_default({})".format(data))
-    return data[1]
-
 def submit_test():  
     out = data_utils.data_value_submission(datestamp="now", serial_number="0", data_value=0.5, remote_addr="127.0.0.1", is_obj=False)
     print(out)
-
-ProcessingFunctions = {'hydro_power' : process_hydro_power_data,\
-                       'hydro_wh'    : process_hydro_wh_data,\
-                       }
 
 ##########################################################################################
 class SubmitData(object):
@@ -72,6 +46,7 @@ class SubmitData(object):
         self.state     = dict()
 
         self.config['channel']  = channel
+        self.config['print']    = False
 
         self.state['msg_count'] = 0;
         self.state['busy']      = False;        
@@ -130,7 +105,7 @@ class SubmitData(object):
         self.log.debug('end of reader() function')
 
     def process_message(self, item):
-        self.log.debug('process_message()')        
+        self.log.debug('process_message()')
         try:
             if item['channel'] == 'data':
                 device_data = [sjson.loads(item['data'])]
@@ -148,7 +123,7 @@ class SubmitData(object):
             for data in device_data:
                 sn                  = data[0]
                 device_instance     = models.DeviceInstance.objects.filter(serial_number__exact=sn)
-                print(device_instance)
+                #print(device_instance)
                 if device_instance.count() == 1:
                     reload(hwcal)
                     callibration = device_instance[0].callibration
@@ -159,9 +134,17 @@ class SubmitData(object):
                     val = data[1]
                 
                 self.state['submit_sn_val']  = [timestamp, sn, val]
-                submit_results = data_utils.data_value_submission(datestamp=timestamp, serial_number=sn, data_value=val, remote_addr="127.0.0.1", is_obj=False)
+                submit_results = data_utils.data_value_submission(datestamp=timestamp, serial_number=sn, data_value=val, remote_addr="127.0.0.1", is_obj=False)                
                 self.state['submit_results']  = submit_results
                 self.state['msg_count'] += 1
+
+                submit_dict = sjson.loads(submit_results)
+                msg = "sn: {0:<25} val: {1:<10} status: {2}".format(submit_dict['sn'], submit_dict['data_value'],submit_dict['msg'])
+                self.log.debug(msg)
+
+                if self.config['print']:                    
+                    print(msg)
+
 
         except Exception as E:
             self.log.error("process_message(): " + E.message)

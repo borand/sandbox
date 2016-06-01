@@ -43,8 +43,7 @@ def data_value_submission(datestamp, serial_number, data_value, remote_addr, is_
     Handles submission of data from remote sensors into the data base.
     """
     
-    msg = "  data_value_submission(%s, %s, %s, %s)" % (datestamp, serial_number, data_value, remote_addr)
-    print(msg)
+    msg = "  data_value_submission(%s, %s, %s, %s)" % (datestamp, serial_number, data_value, remote_addr)    
     logger.debug(msg)
 
     res = dict()
@@ -81,8 +80,7 @@ def data_value_submission(datestamp, serial_number, data_value, remote_addr, is_
     if len(DeviceInstanceList) == 0:
         msg = 'Device not found in DB'
         logger.debug(msg)
-        res['msg'] = msg
-        print(msg)
+        res['msg'] = msg        
         return json.dumps(res)
     DeviceInstance = DeviceInstanceList[0]
     
@@ -93,16 +91,14 @@ def data_value_submission(datestamp, serial_number, data_value, remote_addr, is_
         if remote_addr not in DeviceInstance.gateway.address:
             msg = 'ip address not registered for data submit'
             logger.debug(msg)
-            res['msg'] = msg
-            print(msg)
+            res['msg'] = msg            
             return json.dumps(res)
 
     # Check if the device is active 
     if not DeviceInstance.active:
         msg = "Device is not active, data will not be saved"
         logger.debug(msg)
-        res['msg'] = msg
-        print(msg)
+        res['msg'] = msg        
         return json.dumps(res)
     
     # Check for submission with fugure date 
@@ -110,8 +106,7 @@ def data_value_submission(datestamp, serial_number, data_value, remote_addr, is_
     if TimeStamp.measurement_timestamp > datetime.datetime.now():
         msg = 'Cannot submit values with future dates'        
         logger.debug(msg)
-        res['msg'] = msg
-        print(msg)
+        res['msg'] = msg        
         return json.dumps(res)
     res['datestamp']  = TimeStamp.__unicode__()
 
@@ -124,8 +119,7 @@ def data_value_submission(datestamp, serial_number, data_value, remote_addr, is_
         if data_value_float > max_value or data_value_float < min_value:
             msg = "Value submitted is out of range [{0} {1}]".format(min_value, max_value)
             logger.debug(msg)
-            res['msg'] = msg
-            print(msg)
+            res['msg'] = msg            
             return json.dumps(res)
 
         ExistingDataValue = models.DataValue.objects.filter(device_instance=DeviceInstance).order_by('-data_timestamp')
@@ -144,15 +138,13 @@ def data_value_submission(datestamp, serial_number, data_value, remote_addr, is_
         if delta_time_sec < update_rate:
             msg = "Maximum update rate = %d sec exceeded." % (update_rate)
             logger.debug(msg)        
-            res['msg'] = msg
-            print(msg)
+            res['msg'] = msg            
             return json.dumps(res)
             
         if len(ExistingDataValue.filter(value=data_value_float, data_timestamp=TimeStamp)) > 0:
             msg = "Identical record already found in the data base, new submission rejected"
             logger.debug(msg)
-            res['msg'] = msg
-            print(msg)
+            res['msg'] = msg            
             return json.dumps(res)        
         
         if abs(data_value_float - last_data_value_float) >= DeviceInstance.update_threshold or delta_time_sec > DeviceInstance.update_rate_max:
@@ -166,14 +158,12 @@ def data_value_submission(datestamp, serial_number, data_value, remote_addr, is_
             logger.debug(msg)
             res['status']   = 'ACCEPTED'
             res['accepted'] = True
-            res['msg']      = msg
-            print(msg)
+            res['msg']      = msg            
             return json.dumps(res)
         else:
             msg = "value submitted did not change by minimum threshold {0} withing {1} sec".format(DeviceInstance.update_threshold, DeviceInstance.update_rate_max)
             logger.debug(msg)        
-            res['msg']      = msg
-            print(msg)
+            res['msg']      = msg            
             return json.dumps(res)
     else:
         logger.debug("Decoded submitted_obj")
@@ -200,8 +190,7 @@ def data_value_submission(datestamp, serial_number, data_value, remote_addr, is_
             logger.debug(msg)
             res['status']   = 'ACCEPTED'
             res['accepted'] = True
-            res['msg']      = msg
-            print(msg)
+            res['msg']      = msg            
             return json.dumps(res)
 
 if __name__ == '__main__':
