@@ -3,4 +3,5 @@ venv
 staticfiles
 .env
 .venv
+.ipynb_checkpoints*
 db.sqlite3

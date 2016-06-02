@@ -88,3 +88,8 @@ def api_get_data(request, **kwargs):
     json_data = json.dumps(kwargs)
     print("Making value pair list = %.3f" % (time.time() - to))    
     return HttpResponse(json_data)
+
+def plot_model(request):
+    msg = "plot_model %s" % (datetime.datetime.now())
+    logger.info(msg)    
+    return HttpResponse(msg)
