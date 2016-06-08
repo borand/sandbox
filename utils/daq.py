@@ -99,9 +99,10 @@ class SubmitData(object):
                 if item['data'] == "ERROR_TEST":
                     self.redis.publish('error', __name__ + ": ERROR_TEST")
                 else:
-                    if item['type'] == 'message':                                 
-                        self.process_message(item)                    
-
+                    if item['type'] == 'message':
+                        self.process_message(item)
+        
+        self.state['reader_thread'] = "exit"
         self.log.debug('end of reader() function')
 
     def process_message(self, item):
@@ -154,6 +155,7 @@ class SubmitData(object):
 def StartIqrSubmit():    
     try:
         I = SubmitData();
+        I.config['print'] = True
         print("===============================================")
         while True:
             time.sleep(1)

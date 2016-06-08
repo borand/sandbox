@@ -132,6 +132,11 @@ LOGGING = {
     },
 }
 
+if DEBUG:
+    # make all loggers use the console.
+    for logger in LOGGING['loggers']:
+        LOGGING['loggers'][logger]['handlers'] = ['console']
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 

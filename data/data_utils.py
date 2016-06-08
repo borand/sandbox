@@ -7,8 +7,9 @@ import logging
 from data import models
 from django.utils import timezone
 
+
 logger = logging.getLogger(__name__)
-logger.level = 20
+#logger.level = logger.INFO
 
 def get_existing_or_new(date_string, save=False):
     """
@@ -44,7 +45,7 @@ def data_value_submission(datestamp, serial_number, data_value, remote_addr, is_
     """
     
     msg = "  data_value_submission(%s, %s, %s, %s)" % (datestamp, serial_number, data_value, remote_addr)    
-    logger.debug(msg)
+    logger.info(msg)
 
     res = dict()
     res['status']     = 'REJECTED'
@@ -63,7 +64,7 @@ def data_value_submission(datestamp, serial_number, data_value, remote_addr, is_
             submitted_obj = json.loads(data_value)
         except Exception as E:
             msg = "cannot decode submited data as json. Error msg: " + E.message
-            logger.debug(msg)
+            logger.info(msg)
             res['msg'] = msg
             return json.dumps(res)
     else:
@@ -71,7 +72,7 @@ def data_value_submission(datestamp, serial_number, data_value, remote_addr, is_
             data_value_float = float(data_value)
         except ValueError:
             msg = "Cannot convert to float attempting"            
-            logger.debug(msg)
+            logger.info(msg)
             res['msg'] = msg
             return json.dumps(res)
 
@@ -79,7 +80,7 @@ def data_value_submission(datestamp, serial_number, data_value, remote_addr, is_
     DeviceInstanceList = models.DeviceInstance.objects.filter(serial_number=serial_number)
     if len(DeviceInstanceList) == 0:
         msg = 'Device not found in DB'
-        logger.debug(msg)
+        logger.info(msg)
         res['msg'] = msg        
         return json.dumps(res)
     DeviceInstance = DeviceInstanceList[0]
@@ -87,17 +88,17 @@ def data_value_submission(datestamp, serial_number, data_value, remote_addr, is_
     # Check for restrictions, that is if submission is only accepted from a given IP 
     if DeviceInstance.accept_from_gateway_only:
         msg = 'remote_address=%s matches DeviceInstance.gateway.address=%s' % (remote_addr, DeviceInstance.gateway.address)
-        logger.debug(msg)
+        logger.info(msg)
         if remote_addr not in DeviceInstance.gateway.address:
             msg = 'ip address not registered for data submit'
-            logger.debug(msg)
+            logger.info(msg)
             res['msg'] = msg            
             return json.dumps(res)
 
     # Check if the device is active 
     if not DeviceInstance.active:
         msg = "Device is not active, data will not be saved"
-        logger.debug(msg)
+        logger.info(msg)
         res['msg'] = msg        
         return json.dumps(res)
     
@@ -105,7 +106,7 @@ def data_value_submission(datestamp, serial_number, data_value, remote_addr, is_
     TimeStamp = get_existing_or_new(datestamp)    
     if TimeStamp.measurement_timestamp > datetime.datetime.now():
         msg = 'Cannot submit values with future dates'        
-        logger.debug(msg)
+        logger.info(msg)
         res['msg'] = msg        
         return json.dumps(res)
     res['datestamp']  = TimeStamp.__unicode__()
@@ -118,12 +119,12 @@ def data_value_submission(datestamp, serial_number, data_value, remote_addr, is_
 
         if data_value_float > max_value or data_value_float < min_value:
             msg = "Value submitted is out of range [{0} {1}]".format(min_value, max_value)
-            logger.debug(msg)
+            logger.info(msg)
             res['msg'] = msg            
             return json.dumps(res)
 
         ExistingDataValue = models.DataValue.objects.filter(device_instance=DeviceInstance).order_by('-data_timestamp')
-        logger.debug("Found %d existing ExistingDataValue objects" % (ExistingDataValue.count()))
+        logger.info("Found %d existing ExistingDataValue objects" % (ExistingDataValue.count()))
 
         if ExistingDataValue.count() > 0:
             delta_time            = TimeStamp.measurement_timestamp - ExistingDataValue[0].data_timestamp.measurement_timestamp
@@ -134,16 +135,16 @@ def data_value_submission(datestamp, serial_number, data_value, remote_addr, is_
             last_data_value_float = 10e10
 
         res['delta_time_sec'] = delta_time_sec;
-        logger.debug("%d sec since last submisison" % (delta_time_sec))
+        logger.info("%d sec since last submisison" % (delta_time_sec))
         if delta_time_sec < update_rate:
             msg = "Maximum update rate = %d sec exceeded." % (update_rate)
-            logger.debug(msg)        
+            logger.info(msg)        
             res['msg'] = msg            
             return json.dumps(res)
             
         if len(ExistingDataValue.filter(value=data_value_float, data_timestamp=TimeStamp)) > 0:
             msg = "Identical record already found in the data base, new submission rejected"
-            logger.debug(msg)
+            logger.info(msg)
             res['msg'] = msg            
             return json.dumps(res)        
         
@@ -155,14 +156,14 @@ def data_value_submission(datestamp, serial_number, data_value, remote_addr, is_
             #DataValueInstance.save(using='data')
             DataValueInstance.save()
             msg = "value accepted and saved"
-            logger.debug(msg)
+            logger.info(msg)
             res['status']   = 'ACCEPTED'
             res['accepted'] = True
             res['msg']      = msg            
             return json.dumps(res)
         else:
             msg = "value submitted did not change by minimum threshold {0} withing {1} sec".format(DeviceInstance.update_threshold, DeviceInstance.update_rate_max)
-            logger.debug(msg)        
+            logger.info(msg)        
             res['msg']      = msg            
             return json.dumps(res)
     else:
